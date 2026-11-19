@@ -1,17 +1,18 @@
-"""Central configuration for Linux Doctor."""
+"""Central configuration for Dr. System (Linux Doctor)."""
 
-APP_NAME = "Linux Doctor"
-APP_AUTHOR = "[YOUR NAME]"
+APP_NAME = "Dr. System"
+APP_CLI_NAME = "dr-system"
+APP_AUTHOR = "Atul Singh Chandel"
+APP_AUTHOR_EMAIL = "myself.tas03@gmail.com"
 APP_TAGLINE = "Know your PC. Understand its health."
-APP_VERSION = "1.0.0"
-REPOSITORY_URL = "https://github.com/linux-doctor/linux-doctor"
+APP_VERSION = "2.5.0"
+REPOSITORY_URL = "https://github.com/atulsinghchandel/dr-system"
 LICENSE_NAME = "MIT"
 
 DEFAULT_SETTINGS = {
-    "theme": "system",  # "dark", "light", "system"
-    "temperature_unit": "celsius",  # "celsius", "fahrenheit"
+    "theme": "cyber_dark",
+    "temperature_unit": "celsius",
     "anonymize_reports": True,
     "check_timeout_seconds": 10,
     "elevated_checks_enabled": False,
-    "first_launch_completed": False,
 }

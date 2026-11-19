@@ -1,10 +1,10 @@
-"""Linux Doctor Entry Point."""
+"""Dr. System (Linux Doctor) Entry Point."""
 
 import sys
 
 
 def main():
-    """Main CLI entrypoint."""
+    """Main terminal CLI entrypoint."""
     from linux_doctor.cli.commands import app
     app()
 

@@ -3,18 +3,14 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "linux-doctor"
-version = "1.0.0"
-description = "Know your PC. Understand its health. Open-source system diagnostics, health scoring, and safe maintenance software."
+name = "dr-system"
+version = "2.5.0"
+description = "Dr. System - Know your PC. Understand its health. Terminal PC Hardware Diagnostic & Clinical Health Scoring Doctor."
 readme = "README.md"
-authors = [{ name = "[YOUR NAME]" }]
+authors = [{ name = "Atul Singh Chandel" }]
 license = { text = "MIT" }
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
     "Operating System :: POSIX :: Linux",
     "Operating System :: Microsoft :: Windows",
     "Topic :: System :: Monitoring",
@@ -25,7 +21,6 @@ dependencies = [
     "rich>=13.0.0",
     "pydantic>=2.0.0",
     "typer>=0.9.0",
-    "PySide6>=6.5.0",
 ]
 
 [project.optional-dependencies]
@@ -35,8 +30,8 @@ dev = [
 ]
 
 [project.scripts]
+dr-system = "linux_doctor.main:main"
 linux-doctor = "linux_doctor.main:main"
-linux-doctor-gui = "linux_doctor.main:gui_main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
