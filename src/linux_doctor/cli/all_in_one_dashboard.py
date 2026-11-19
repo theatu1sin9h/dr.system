@@ -15,7 +15,7 @@ import time
 import tty
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 import psutil
 
 from rich import box
@@ -32,7 +32,7 @@ from rich.text import Text
 from linux_doctor.config import APP_AUTHOR, APP_AUTHOR_EMAIL, APP_NAME, APP_TAGLINE, APP_VERSION
 from linux_doctor.core.causality import CausalityEngine
 from linux_doctor.core.detector import OSDetector, OSInfo
-from linux_doctor.core.findings import FindingSeverity
+from linux_doctor.core.findings import FindingSeverity, ModuleResult
 from linux_doctor.core.scanner import DiagnosticScanner
 from linux_doctor.diagnostics.security_posture import KernelSecurityAuditor
 
@@ -93,7 +93,7 @@ class AllInOneDashboard:
     def __init__(self):
         self.os_info: OSInfo = OSDetector.detect()
         self.scanner = DiagnosticScanner()
-        self.results: Dict = {}
+        self.results: Dict[str, Any] = {}
         self.scan_complete = False
         self.active_tab = 1  # 1 = Architecture, 2 = Hardware & Storage, 3 = Kernel Security, 4 = Causality & Issues
         self.boot_time = datetime.fromtimestamp(psutil.boot_time())
@@ -105,6 +105,14 @@ class AllInOneDashboard:
         h, rem = divmod(delta.seconds, 3600)
         m, s = divmod(rem, 60)
         return f"{d}d {h}h {m}m {s}s" if d > 0 else f"{h}h {m}m {s}s"
+
+    def _get_metric(self, mod_key: str, metric_key: str, default: Any = None) -> Any:
+        mod = self.results.get(mod_key)
+        if isinstance(mod, ModuleResult):
+            return mod.metrics.get(metric_key, default)
+        elif isinstance(mod, dict):
+            return mod.get("metrics", {}).get(metric_key, default)
+        return default
 
     def render_architecture_view(self) -> Group:
         """Tab 1: Architecture Diagram & Live Telemetry Stream."""
@@ -171,28 +179,35 @@ class AllInOneDashboard:
         hw_table.add_column("Model / Specification", style="bold bright_white")
         hw_table.add_column("Direct Health Telemetry", style="bright_green")
 
-        cpu_m = self.results.get("cpu", {})
-        cpu_name = cpu_m.metrics.get("model", "Processor") if cpu_m else "CPU"
-        hw_table.add_row("Processor (CPU)", f"{cpu_name}", f"{psutil.cpu_count(logical=False)} Physical Cores / {psutil.cpu_count(logical=True)} Threads")
+        # CPU
+        cpu_name = self._get_metric("cpu", "model", "Processor")
+        cores_phys = psutil.cpu_count(logical=False) or 1
+        cores_log = psutil.cpu_count(logical=True) or 1
+        hw_table.add_row("Processor (CPU)", f"{cpu_name}", f"{cores_phys} Cores / {cores_log} Threads")
 
+        # Memory
         vm = psutil.virtual_memory()
         hw_table.add_row("RAM Fabric", f"{vm.total / (1024**3):.2f} GB Total Pool", f"{vm.available / (1024**3):.2f} GB Available for Allocation")
 
-        gpu_m = self.results.get("gpu", {})
-        gpu_name = "Kernel Integrated Graphics"
-        if gpu_m and gpu_m.metrics.get("gpus"):
-            gpu_name = gpu_m.metrics["gpus"][0].get("model", "GPU")
-        hw_table.add_row("Graphics Accelerator", gpu_name[:40], f"Renderer: {gpu_m.metrics.get('opengl_renderer', 'Mesa/Kernel DRM')[:24]}")
+        # GPU
+        gpus = self._get_metric("gpu", "gpus", [])
+        gpu_name = gpus[0].get("model", "Graphics Controller") if gpus else "Kernel Integrated Graphics"
+        renderer = self._get_metric("gpu", "opengl_renderer", "Mesa / DRM")
+        hw_table.add_row("Graphics Accelerator", str(gpu_name)[:40], f"Renderer: {str(renderer)[:24]}")
 
-        lat_m = self.results.get("storage_latency", {})
-        lat_str = "Auditing latency..."
-        if lat_m and lat_m.metrics.get("latency_test"):
-            p99 = lat_m.metrics["latency_test"].get("p99_latency_ms", "-")
+        # Storage & Latency
+        lat_test = self._get_metric("storage_latency", "latency_test")
+        lat_str = "Auditing live jitter in background..."
+        if lat_test and isinstance(lat_test, dict):
+            p99 = lat_test.get("p99_latency_ms", "-")
             lat_str = f"Direct 4K Read P99: {p99} ms (Page cache bypass)"
         hw_table.add_row("Storage Block Devices", f"{len(psutil.disk_partitions(all=False))} Mounted Volumes", lat_str)
 
-        hw_table.add_row("Audio Subsystem", f"Server: {self.os_info.audio_server or 'PipeWire'}", f"ALSA Cards: {self.results.get('audio', {}).metrics.get('sound_cards_count', 0)}")
+        # Audio
+        sound_cnt = self._get_metric("audio", "sound_cards_count", 0)
+        hw_table.add_row("Audio Subsystem", f"Server: {self.os_info.audio_server or 'PipeWire'}", f"ALSA Cards: {sound_cnt}")
 
+        # Battery
         bat = psutil.sensors_battery() if hasattr(psutil, "sensors_battery") else None
         bat_str = f"{bat.percent}% ({'AC Connected' if bat.power_plugged else 'Battery'})" if bat else "Desktop Station (AC Mains)"
         hw_table.add_row("Battery & Power", bat_str, "Wear Normal")
@@ -277,10 +292,11 @@ class AllInOneDashboard:
 
         issue_cnt = 0
         for mod in self.results.values():
-            for f in mod.findings:
-                if f.severity in (FindingSeverity.WARNING, FindingSeverity.CRITICAL):
-                    issue_cnt += 1
-                    issues_table.add_row(mod.display_name, f.title, f.safe_next_step)
+            if isinstance(mod, ModuleResult):
+                for f in mod.findings:
+                    if f.severity in (FindingSeverity.WARNING, FindingSeverity.CRITICAL):
+                        issue_cnt += 1
+                        issues_table.add_row(mod.display_name, f.title, f.safe_next_step)
 
         if issue_cnt == 0:
             issues_table.add_row("System Audit", "No critical findings detected.", "Continue normal operation.")
@@ -311,15 +327,18 @@ class AllInOneDashboard:
 
         layout["header"].update(Panel(Align.center(header_text), box=box.DOUBLE, border_style="bright_blue"))
 
-        # Render Active Tab in Body
-        if self.active_tab == 1:
-            body_content = self.render_architecture_view()
-        elif self.active_tab == 2:
-            body_content = self.render_hardware_view()
-        elif self.active_tab == 3:
-            body_content = self.render_security_view()
-        else:
-            body_content = self.render_causality_view()
+        # Render Active Tab safely
+        try:
+            if self.active_tab == 1:
+                body_content = self.render_architecture_view()
+            elif self.active_tab == 2:
+                body_content = self.render_hardware_view()
+            elif self.active_tab == 3:
+                body_content = self.render_security_view()
+            else:
+                body_content = self.render_causality_view()
+        except Exception as e:
+            body_content = Panel(f"[bold red]View Render Notice:[/bold red] {str(e)}", border_style="red")
 
         layout["body"].update(body_content)
 
@@ -388,7 +407,10 @@ def run_all_in_one():
             progress.update(task, completed=pct, description=f"[cyan]Calibrating sensor node:[/cyan] [bold yellow]{m_name}[/bold yellow]")
             time.sleep(0.08)
 
-    # Launch background thread for heavy latency/thermal tests so UI loads INSTANTLY
+    # Initial scan of fast modules
+    dashboard.results = dashboard.scanner.run_scan(module_keys=[m[0] for m in fast_modules], save_snapshot=False)
+
+    # Launch background thread for heavy latency/thermal tests
     def bg_deep_scan():
         try:
             from linux_doctor.diagnostics.storage_latency import StorageLatencyDiagnostic
@@ -407,7 +429,6 @@ def run_all_in_one():
         try:
             with Live(dashboard.generate_layout(), console=console, refresh_per_second=4, screen=True) as live:
                 while True:
-                    # Check real-time keypresses
                     ch = kb.get_key()
                     if ch:
                         if ch in ('1', '2', '3', '4'):
@@ -415,7 +436,6 @@ def run_all_in_one():
                         elif ch.lower() in ('q', '\x03', '\x1b'):  # Q, Ctrl+C, Esc
                             break
                         elif ch.lower() == 'r':
-                            # Rescan
                             dashboard.results = dashboard.scanner.run_scan(save_snapshot=False)
 
                     live.update(dashboard.generate_layout())
