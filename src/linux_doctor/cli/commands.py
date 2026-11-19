@@ -104,6 +104,46 @@ def live():
 
 
 @app.command()
+def uninstall(
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt"),
+):
+    """Completely remove Dr. System symlinks, desktop entries, and snapshots."""
+    print_header(compact=True)
+    if not yes:
+        confirm = typer.confirm("Are you sure you want to completely uninstall Dr. System?")
+        if not confirm:
+            console.print("[green]Uninstallation aborted. No changes made.[/green]")
+            raise typer.Exit()
+
+    # 1. Remove symlinks
+    bin_paths = [
+        Path.home() / ".local" / "bin" / "dr-system",
+        Path.home() / ".local" / "bin" / "dr-system-gui",
+        Path.home() / ".local" / "bin" / "linux-doctor",
+        Path.home() / ".local" / "bin" / "linux-doctor-gui",
+    ]
+    for bp in bin_paths:
+        if bp.exists() or bp.is_symlink():
+            bp.unlink(missing_ok=True)
+            console.print(f"[dim]Removed binary link: {bp}[/dim]")
+
+    # 2. Remove desktop shortcut
+    desktop_file = Path.home() / ".local" / "share" / "applications" / "linux-doctor.desktop"
+    if desktop_file.exists():
+        desktop_file.unlink(missing_ok=True)
+        console.print(f"[dim]Removed desktop shortcut: {desktop_file}[/dim]")
+
+    # 3. Remove snapshot records
+    snap_dir = Path.home() / ".config" / "linux-doctor"
+    if snap_dir.exists():
+        shutil.rmtree(snap_dir, ignore_errors=True)
+        console.print(f"[dim]Removed config & snapshots: {snap_dir}[/dim]")
+
+    console.print("\n[bold green]✓ Dr. System successfully uninstalled from your system.[/bold green]")
+    console.print("[dim]To delete the cloned source folder, run: cd .. && rm -rf dr.system[/dim]\n")
+
+
+@app.command()
 def scan(
     full: bool = typer.Option(True, "--full", help="Perform complete system diagnostic"),
     cpu: bool = typer.Option(False, "--cpu", help="Scan CPU only"),

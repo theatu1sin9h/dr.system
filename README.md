@@ -26,7 +26,7 @@
 
 </div>
 
-## 🚀 The All-In-One Experience (`./dr.system.sh`)
+## 🚀 1-Click Launch (`./dr.system.sh`)
 
 Clone the repo and run **one single file**:
 
@@ -37,6 +37,35 @@ cd dr.system
 ```
 
 Everything installs and initializes automatically in an isolated virtual environment and launches the **Dr. System Interactive Terminal Console**.
+
+---
+
+## 🗑️ Clean Uninstallation (Remove Dr. System)
+
+If you ever wish to remove Dr. System from your computer completely:
+
+### Method 1: Interactive Uninstall Script
+Run the automated cleanup script inside the repository:
+```bash
+./uninstall.sh
+```
+This cleanly removes:
+- `~/.local/bin/dr-system` (CLI binary link)
+- `~/.local/share/applications/linux-doctor.desktop` (Desktop menu entry)
+- `~/.config/linux-doctor` (Saved historical snapshots & configs)
+- `.venv/` (Virtual environment)
+
+To remove the cloned source folder as well:
+```bash
+cd .. && rm -rf dr.system
+```
+
+### Method 2: Via Command-Line Interface
+If installed in your path, you can run directly from anywhere:
+```bash
+dr-system uninstall
+```
+*(Use `dr-system uninstall --yes` to bypass the confirmation prompt)*.
 
 ---
 
@@ -119,6 +148,9 @@ dr-system diff
 dr-system report --format txt --output report.txt
 dr-system report --format json --output report.json
 dr-system report --format html --output report.html
+
+# 7. Cleanly uninstall Dr. System from your machine
+dr-system uninstall
 ```
 
 ---
