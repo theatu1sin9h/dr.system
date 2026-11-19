@@ -61,8 +61,8 @@ fi
 mkdir -p "$HOME/.local/bin" 2>/dev/null || true
 ln -sf "$DIR/.venv/bin/dr-system" "$HOME/.local/bin/dr-system" 2>/dev/null || true
 
-echo -e "\033[1;32m[+] Launching Dr. System Master Split-Screen Console...\033[0m"
+echo -e "\033[1;32m[+] Launching Dr. System Master All-In-One Cyber Console...\033[0m"
 sleep 1
 
-# Launch Live Split-Screen Console
-exec python -c "from linux_doctor.cli.split_dashboard import run_split_dashboard; run_split_dashboard()" "$@"
+# Launch Live All-In-One Terminal Console
+exec python -c "from linux_doctor.cli.all_in_one_dashboard import run_all_in_one; run_all_in_one()" "$@"
