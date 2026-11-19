@@ -40,32 +40,18 @@ Everything installs and initializes automatically in an isolated virtual environ
 
 ---
 
-## 🗑️ Clean Uninstallation (Remove Dr. System)
+## ⌨️ Instant Real-Time Keyboard Navigation
 
-If you ever wish to remove Dr. System from your computer completely:
+Switch between full clinical diagnostic views in real time **with a single keystroke** (no need to press <kbd>Enter</kbd>):
 
-### Method 1: Interactive Uninstall Script
-Run the automated cleanup script inside the repository:
-```bash
-./uninstall.sh
-```
-This cleanly removes:
-- `~/.local/bin/dr-system` (CLI binary link)
-- `~/.local/share/applications/linux-doctor.desktop` (Desktop menu entry)
-- `~/.config/linux-doctor` (Saved historical snapshots & configs)
-- `.venv/` (Virtual environment)
-
-To remove the cloned source folder as well:
-```bash
-cd .. && rm -rf dr.system
-```
-
-### Method 2: Via Command-Line Interface
-If installed in your path, you can run directly from anywhere:
-```bash
-dr-system uninstall
-```
-*(Use `dr-system uninstall --yes` to bypass the confirmation prompt)*.
+| Key | Cyber View | Description |
+| :---: | :--- | :--- |
+| <kbd>1</kbd> | **Architecture & Live Flow** | Visual ASCII hardware bus interconnect topology diagram & real-time telemetry stream |
+| <kbd>2</kbd> | **Hardware & Block Latency** | Full physical component inventory, mounted partition gauges & raw 4K read jitter (page-cache bypass) |
+| <kbd>3</kbd> | **Kernel Security Posture** | Runtime Linux kernel hardening audit: AppArmor/SELinux LSM, ASLR, kptr_restrict, Yama ptrace, SYN cookies |
+| <kbd>4</kbd> | **Causality & Prescriptions** | Cross-subsystem bottleneck correlator linking thermal drops, storage stalls, and clinical remedies |
+| <kbd>R</kbd> | **Rescan Diagnostics** | Refreshes all hardware probes and recalculates health scores on the fly |
+| <kbd>Q</kbd> | **Quit Cleanly** | Restores terminal tty cursor and exits safely |
 
 ---
 
@@ -118,6 +104,35 @@ Instead of reporting isolated numbers, Dr. System correlates issues across layer
 - Detects if **high silicon temperatures** are actively throttling CPU frequencies.
 - Detects if **storage I/O queue stalls** are causing audio dropouts or desktop micro-freezes.
 - Translates issues into clinical prescriptions with actionable, safe next steps.
+
+---
+
+## 🗑️ Clean Uninstallation (Remove Dr. System)
+
+If you ever wish to remove Dr. System from your computer completely:
+
+### Method 1: Interactive Uninstall Script
+Run the automated cleanup script inside the repository:
+```bash
+./uninstall.sh
+```
+This cleanly removes:
+- `~/.local/bin/dr-system` (CLI binary link)
+- `~/.local/share/applications/linux-doctor.desktop` (Desktop menu entry)
+- `~/.config/linux-doctor` (Saved historical snapshots & configs)
+- `.venv/` (Virtual environment)
+
+To remove the cloned source folder as well:
+```bash
+cd .. && rm -rf dr.system
+```
+
+### Method 2: Via Command-Line Interface
+If installed in your path, you can run directly from anywhere:
+```bash
+dr-system uninstall
+```
+*(Use `dr-system uninstall --yes` to bypass the confirmation prompt)*.
 
 ---
 
