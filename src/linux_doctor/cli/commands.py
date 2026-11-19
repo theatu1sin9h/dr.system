@@ -97,6 +97,13 @@ def info():
 
 
 @app.command()
+def live():
+    """Launch the split-screen cyber hardware console."""
+    from linux_doctor.cli.split_dashboard import run_split_dashboard
+    run_split_dashboard()
+
+
+@app.command()
 def scan(
     full: bool = typer.Option(True, "--full", help="Perform complete system diagnostic"),
     cpu: bool = typer.Option(False, "--cpu", help="Scan CPU only"),
